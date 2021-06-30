@@ -1,0 +1,17 @@
+# AW
+Saves/
+Sandbox/assets/
+website/
+*.log
+
+# Binaries
+**/bin/
+!vendor/premake/bin/
+# VS
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.user
+**.vcxproj.filters
+**.ini
+!imgui.ini
