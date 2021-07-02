@@ -1,53 +1,89 @@
 workspace "GameEngine"
 	architecture "x64"
+	startproject "Editor"
 
-	configurations { "Debug", "Beta", "Dist" }
+	configurations { "Alpha", "Beta", "Release" }
+	
+	flags {
+		"MultiProcessorCompile"
+	}
 
-outputdir = "${cfg.system}/%{cfg.buildcfg}-${cfg.architecture}"
+outputdir = "%{cfg.system}/%{cfg.buildcfg}-%{cfg.architecture}"
+IncludeDir = {}
+IncludeDir["GLFW"] = "%{wks.location}/Engine/vendor/GLFW/include"
+IncludeDir["Glad"] = "%{wks.location}/Engine/vendor/Glad/include"
+
+group "Dependencies"
+	include "Engine/vendor/GLFW"
+	include "Engine/vendor/Glad"
+group ""
+
 
 project "Engine"
-	location "../Engine"
+	location "Engine"
 	kind "StaticLib"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "off"
 	
-	targetdir ("bin/" .. outputdir .. "/${prj.name}")
-	objdir ("bin/int/" .. outputdir .. "/${prj.name}")
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin/int/" .. outputdir .. "/%{prj.name}")
+
+	pchheader "enpch.h"
+	pchsource "Engine/src/enpch.cpp"
 
 	files {
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp"
 	}
+	defines {
+		"_CRT_SECURE_NO_WARNINGS"
+		-- "GLFW_INCLUDE_NONE"
+	}
 
 	includedirs {
-		-- "%{prj.name}/vendor/spdlog/include"
+		"%{prj.name}/src",
+		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{prj.name}/vendor"
+	}
+	links {
+		"GLFW",
+		"Glad",
+		"opengl32.lib"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines {
-			"EN_PLATFORM_WINDOWS"
+			"ENGINE_PLATFORM_WINDOWS"
 		}
 		
-	filter "configurations:Debug"
-		defines "EN_DEBUG"
-		symbols "On"
+	filter "configurations:Alpha"
+		defines { "ALPHA", "LOGGING", "ENGINE_ENABLE_FATAL" }
+		runtime "Debug"
+		optimize "on"
 	filter "configurations:Beta"
-		defines "EN_BETA"
-		symbols "On"
-	filter "configurations:Dist"
-		defines "EN_DIST"
-		symbols "On"
+		defines { "BETA", "LOGGING" }
+		runtime "Release"
+		optimize "on"
+	filter "configurations:Release"
+		defines { "RELEASE" }
+		runtime "Release"
+		optimize "on"
+
 
 project "Editor"
-	location "../Editor"
+	location "Editor"
 	kind "ConsoleApp"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "off"
 	
-	targetdir ("bin/" .. outputdir .. "/${prj.name}")
-	objdir ("bin/int/" .. outputdir .. "/${prj.name}")
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin/int/" .. outputdir .. "/%{prj.name}")
 
 	files {
 		"%{prj.name}/src/**.h",
@@ -55,30 +91,35 @@ project "Editor"
 	}
 
 	includedirs {
-		-- "Engine/vendor/spdlog/include",
-		"Engine/src"
+		"Engine/vendor/spdlog/include",
+		"Engine/src",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"Engine/vendor"
 	}
 
 	links {	"Engine" }
 
 	filter "system:windows"
-		cppdialect "C++17"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines {
-			"EN_PLATFORM_WINDOWS"
+			"ENGINE_PLATFORM_WINDOWS"
 		}
 		
-	filter "configurations:Debug"
-		defines "EN_DEBUG"
-		symbols "On"
+	filter "configurations:Alpha"
+		defines { "ALPHA", "LOGGING", "ENGINE_ENABLE_FATAL" }
+		runtime "Debug"
+		symbols "on"
 	filter "configurations:Beta"
-		defines "EN_BETA"
-		symbols "On"
-	filter "configurations:Dist"
-		defines "EN_DIST"
-		symbols "On"
+		defines { "BETA", "LOGGING" }
+		runtime "Release"
+		optimize "on"
+	filter "configurations:Release"
+		defines { "RELEASE" }
+		runtime "Release"
+		optimize "on"
+
 
 
 

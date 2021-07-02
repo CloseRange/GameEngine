@@ -1,9 +1,3 @@
-# AW
-Saves/
-Sandbox/assets/
-website/
-*.log
-
 # Binaries
 **/bin/
 !vendor/premake/bin/
